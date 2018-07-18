@@ -1,0 +1,63 @@
+<template>
+    <view class="question">
+        <view class="item">
+            <view class="q-tit">奖品图片分辨率</view>
+            <view class="q-cont">
+                <text>图片长宽比2:1，推荐分辨率750*375像素。</text>
+            </view>
+        </view>
+        <view class="item">
+            <view class="q-tit">不显示头像</view>
+            <view class="q-cont">
+                <text>这是由于微信授权失败导致的，可以在小程序列表中删除该小程序，然后再搜索打开，当提示获取用户信息时，点击确定即可。</text>
+            </view>
+        </view>
+        <view class="item">
+            <view class="q-tit">进入小程序后显示弹窗，无法使用</view>
+            <view class="q-cont">
+                <text>可以在小程序列表中删除该小程序，然后再打开即可。此操作能解决大部分的问题。</text>
+            </view>
+        </view>
+        <view class="item">
+            <view class="q-tit">发货时间</view>
+            <view class="q-cont">
+                <text>中奖之后，我们会在5日之内进行发货，发货后的速度取决于物流公司（2-5天）；也可以通过程序首页底部的客服咨询与我们取得联系。</text>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import mixins from '../mixins/appMixin';
+    import { connect } from 'wepy-redux';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        }
+    })
+    export default class Demo extends wepy.page {
+        config = {
+            'navigationBarTitleText': '常见问题'
+        };
+
+        mixins = [mixins];
+
+        components = {};
+
+        data = {};
+
+        onLoad() {
+            if (this.token) {
+                //
+            } else {
+                this.$parent.pageCallback = () => {
+                    //
+                };
+            }
+        }
+    }
+</script>
+<style lang="less">
+</style>

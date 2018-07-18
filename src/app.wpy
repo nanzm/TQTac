@@ -1,0 +1,260 @@
+<script>
+    import wepy from 'wepy';
+    import 'wepy-async-function';
+    // import throttle from 'lodash/debounce'
+
+    import { connect, setStore } from 'wepy-redux';
+    import configStore from './store';
+    import { SET_AUTH, SET_TOKEN, SET_USERINFO, SET_LOADING, SET_IPX } from './store/types';
+
+    const fundebug = require('fundebug-wxjs');
+    fundebug.init({ apikey: '95186b304a75b33739363b5cbb3113794454842a0146a2887f2776d8e7f2a869' });
+
+    const store = configStore();
+    setStore(store);
+
+    // const baseUrl = 'http://192.168.8.63/wft/public';
+    const baseUrl = 'https://api.youfentong.com';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        }
+    }, {
+        setAuth: SET_AUTH,
+        setUserInfo: SET_USERINFO,
+        setToken: SET_TOKEN,
+        setLoading: SET_LOADING,
+        setIpx: SET_IPX,
+    })
+    export default class extends wepy.app {
+        config = {
+            'pages': [
+                'pages/home',
+                'pages/user',
+            ],
+            'window': {
+                'backgroundColor': '#efefef',
+                'backgroundTextStyle': 'dark',
+                'navigationBarBackgroundColor': '#fff',
+                'navigationBarTitleText': '',
+                'navigationBarTextStyle': 'black'
+            }
+        };
+
+        globalData = {
+            baseUrl: baseUrl
+        };
+
+        constructor() {
+            super();
+            // 修复小程序请求并发问题。
+            // this.use('requestfix');
+
+            //原生API都将Promise化
+            this.use('promisify');
+
+            this.intercept('request', {
+                config(p) {
+                    p.url = baseUrl + p.url;
+                    p.data.openid = this.computed.token();
+
+                    console.warn('ajax config...: ', p);
+
+                    //loading
+                    this.methods.setLoading(true);
+                    wx.showNavigationBarLoading();
+
+                    return p;
+                },
+                success(p) {
+                    let code = p.data.code;
+                    if (code == 1003) {
+                        wx.showModal({
+                            title: '登录失效',
+                            content: '程序将要重启：' + p.data.msg,
+                            confirmText: '知道了',
+                            showCancel: false,
+                            success() {
+                                wx.reLaunch({ url: '/pages/home' });
+                            }
+                        });
+                    } else if (code != 0 && code != 1002) {
+                        wx.showModal({
+                            title: '提示',
+                            content: '' + p.data.msg,
+                            confirmText: '知道了',
+                            showCancel: false
+                        });
+                    }
+                    console.warn('ajax success: ', p);
+                    return p;
+                },
+                fail(p) {
+                    console.error('ajax fail: ', p);
+                    wx.showModal({
+                        title: '网络异常',
+                        content: '你可能需要重启一下!',
+                        confirmText: '知道了',
+                        success(res) {
+                            if (res.confirm) {
+                                //用户点击确定
+                                wx.reLaunch({ url: '/pages/home' });
+                            } else if (res.cancel) {
+                                // 用户点击取消
+                            }
+                        }
+                    });
+                    return p;
+                },
+                complete(p) {
+                    //loading
+                    this.methods.setLoading(false);
+                    wx.hideNavigationBarLoading();
+                    // if (this.timerLoading) clearTimeout(this.timerLoading);
+                    // this.timerLoading = setTimeout(() => {
+                    // }, 300);
+                    // console.log('request complete: ', p);
+                }
+            });
+        }
+
+        onLaunch(params) {
+            let that = this;
+
+            // this.login();
+            this.upDateApp();
+
+            this.isIpxFun();
+        }
+
+        onShow(params) {
+
+            //积分分享参数
+            if (params.query.goodid && params.query.shareUser) {
+                let { goodid, shareUser } = params.query;
+                this.methods.setShareId(shareUser);
+                this.methods.setShareGoods(goodid);
+            }
+
+            // wepy.getShareInfo().then((res) => {
+            //
+            // }).catch((err) => {
+            //     console.log(err);
+            // });
+        }
+
+        login() {
+            wepy.login().then((e) => {
+                wepy.request({
+                    url: '/wx/info/appopenid',
+                    data: {
+                        site: 3,
+                        code: e.code
+                    }
+                }).then((e) => {
+                    if (e.data.code == 0) {
+                        this.methods.setToken(e.data.data);
+
+                        //延迟页面onLoad
+                        if (this.pageCallback) {
+                            this.pageCallback();
+                        }
+                        this.getUserInfo();
+                    }
+                });
+            }).catch((err) => {
+                console.error(err);
+                wx.showModal({
+                    title: '提示',
+                    content: '获取code失败：' + err,
+                    confirmText: '知道了',
+                    showCancel: false
+                });
+            });
+        }
+
+        upDateApp() {
+            if (!wx.getUpdateManager) return;
+            const updateManager = wx.getUpdateManager();
+
+            updateManager.onCheckForUpdate(function(res) {
+                // 请求完新版本信息的回调
+                console.warn(res.hasUpdate);
+            });
+
+            updateManager.onUpdateReady(function() {
+                wx.showModal({
+                    title: '更新提示',
+                    content: '新版本已经准备好，是否重启应用？',
+                    success: function(res) {
+                        if (res.confirm) {
+                            // 新的版本已经下载好，调用 applyUpdate 应用新版本并重启
+                            updateManager.applyUpdate();
+                        }
+                    }
+                });
+            });
+
+            updateManager.onUpdateFailed(function() {
+                // 新的版本下载失败
+            });
+        }
+
+        //验证是否授权
+        getUserInfo() {
+            wepy.getSetting().then((res) => {
+                if (res.authSetting['scope.userInfo']) {
+                    this.methods.setAuth(true);
+                    wepy.getUserInfo().then((info) => {
+                        console.warn('--getUserInfo--', info);
+                        this.sendInfo(info.userInfo);
+                    });
+                } else {
+                    this.methods.setAuth(false);
+                }
+            });
+        }
+
+        sendInfo(info) {
+            console.warn('sendInfo', info);
+            wepy.request({
+                url: '/wx/info/saveinfo',
+                data: {
+                    nick_name: info.nickName,
+                    head_url: info.avatarUrl,
+                    city: info.city,
+                    province: info.province
+                }
+            }).then(() => {
+                return wepy.request({ url: '/wx/luck/userinfo', data: {} });
+            }).then((res) => {
+                if (res.data.code == 0) {
+                    this.methods.setUserInfo(res.data.data);
+                }
+            }).catch();
+        }
+
+        isIpxFun() {
+            wx.getSystemInfo({
+                success: (res) => {
+                    if (res.model.indexOf('iPhone X') > -1) {
+                        console.log('是 iPhone X');
+                        this.methods.setIpx(true);
+                    } else {
+                        console.log('非 iPhone X');
+                    }
+                }
+            });
+        }
+
+        onError(msg) {
+            fundebug.notifyError(msg);
+        }
+
+    }
+</script>
+
+<style lang="less">
+    @import "app";
+</style>

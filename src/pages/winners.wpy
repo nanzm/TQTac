@@ -1,0 +1,68 @@
+<template>
+    <view class="winners">
+        <view class="winners-content">
+            <block wx:for="{{info}}" wx:key="id">
+                <view class="list-item">
+                    <view class="list-item-tit">{{item.prize_name}}</view>
+                    <view class="list-headImg">
+                        <view class="list-winner" wx:for="{{item.winnerlist}}" wx:key="id">
+                            <image class="uesr-head-img" mode="aspectFill" src="{{item.head_url}}"></image>
+                            <view class="ellipsis uesr-name" >{{item.nick_name}}</view>
+                        </view>
+                    </view>
+                </view>
+            </block>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import { connect } from 'wepy-redux';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        }
+    })
+    export default class winners extends wepy.page {
+        config = {
+            'navigationBarTitleText': '中奖用户'
+        };
+
+        components = {};
+
+        data = {
+            id: '',
+            info: []
+        };
+
+        onLoad(query) {
+            console.log(query);
+            this.id = query.id;
+
+            if (this.token) {
+                this.getAllWinners();
+            } else {
+                this.$parent.pageCallback = () => {
+                    this.getAllWinners();
+                };
+            }
+        }
+
+        getAllWinners() {
+            wepy.request({
+                url: '/wx/luck/winnerlist',
+                data: { id: this.id }
+            }).then((res) => {
+                if (res.data.code == 0) {
+                    this.info = res.data.data;
+                    this.$apply();
+                }
+            });
+        }
+    }
+</script>
+<style lang="less">
+    @import "../css/winners";
+</style>

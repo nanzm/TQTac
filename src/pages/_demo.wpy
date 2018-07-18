@@ -1,0 +1,40 @@
+<template>
+
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import mixins from '../mixins/appMixin';
+    import { connect } from 'wepy-redux';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        }
+    })
+    export default class Demo extends wepy.page {
+        config = {
+            'navigationBarTitleText': 'test'
+        };
+
+        mixins = [mixins];
+
+        components = {};
+
+        data = {};
+
+        onLoad() {
+            if (this.token) {
+                //
+            } else {
+                this.$parent.pageCallback = () => {
+                    //
+                };
+            }
+
+        }
+    }
+</script>
+<style lang="less">
+
+</style>

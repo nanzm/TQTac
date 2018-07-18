@@ -1,0 +1,59 @@
+<template>
+    <view class="start">
+        <view class="item" hover-class="item-hover" @tap="navigator(0)">
+            <image class="item-icon" src="/images/iconpro/start-one.png"></image>
+            <view>
+                <view class="line1 f32">满人开奖</view>
+                <view class="line2 f24 c666">达到指定人数 系统自动开奖</view>
+            </view>
+        </view>
+
+        <view class="item" hover-class="item-hover" @tap="navigator(1)">
+            <image class="item-icon" src="/images/iconpro/start-two.png"></image>
+            <view>
+                <view class="line1 f32">定时开奖</view>
+                <view class="line2 f24 c666">达到指定时间 系统自动开奖</view>
+            </view>
+        </view>
+
+        <view class="item" hover-class="item-hover" @tap="navigator(2)">
+            <image class="item-icon" src="/images/iconpro/start-three.png"></image>
+            <view>
+                <view class="line1 f32">手动开奖</view>
+                <view class="line2 f24 c666">发起人手动开奖</view>
+            </view>
+        </view>
+    </view>
+    <authcheck></authcheck>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import authCheck from '../components/authCheck';
+
+    export default class Home extends wepy.page {
+        config = {
+            'navigationBarTitleText': '发起抽奖'
+        };
+
+        components = {
+            authcheck: authCheck
+        };
+
+        data = {};
+
+        onLoad() {
+
+        };
+
+        methods = {
+            navigator(e) {
+                wx.navigateTo({
+                    url: '/pages/form?type=' + e
+                });
+            }
+        };
+    }
+</script>
+<style lang="less">
+</style>

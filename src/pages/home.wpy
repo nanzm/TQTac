@@ -1,0 +1,153 @@
+<template>
+    <view class="home">
+        <block wx:for="{{list.data}}" wx:key="id">
+            <view class="card-item" hover-class="card-hover" data-id="{{item.id}}" @tap="goPotal">
+                <view class="img-box">
+                    <image mode="aspectFill" src=""></image>
+                </view>
+                <view class="card-info">
+                    <text class="card-tit">{{item.name}}</text>
+                    <view class="card-rule">
+                        <view class="status">
+                            <text class="icon icon-checkbox-green"></text>
+                            <text>已参与</text>
+                        </view>
+                        <!--<view class="status">-->
+                        <!--<text style="padding:5rpx;background-color: #e2453a;color: #fff8d2;font-style: 24rpx;">团</text>-->
+                        <!--</view>-->
+                    </view>
+                </view>
+            </view>
+        </block>
+
+        <!--底部按钮-->
+        <view class="btn-contact-box">
+            <button class="txt-btn" open-type="contact" hover-class="txt-btn-hover">客服咨询</button>
+        </view>
+    </view>
+
+    <!--<authcheck></authcheck>-->
+    <wxc-loading is-show="{{loading}}" type="mgj"></wxc-loading>
+    <wxc-toast is-show="{{toast.show}}" text="{{toast.msg}}"></wxc-toast>
+
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import mixins from '../mixins/appMixin';
+    import authCheck from '../components/authCheck';
+    import { connect } from 'wepy-redux';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        },
+        loading(state) {
+            return state.globalData.loading;
+        }
+    })
+    export default class Start extends wepy.page {
+        config = {
+            'navigationBarTitleText': '课程列表',
+            'enablePullDownRefresh': true,
+            'usingComponents': {
+                'wxc-toast': '/packages/@minui/wxc-toast/dist/index',
+                'wxc-loading': '/packages/@minui/wxc-loading/dist/index',
+                'wxc-abnor': '/packages/@minui/wxc-abnor/dist/index'
+            }
+        };
+
+        components = {
+            authcheck: authCheck
+        };
+
+        mixins = [mixins];
+
+        events = {};
+
+        data = {
+            list: {}
+        };
+
+        methods = {
+            goPotal(e) {
+                let id = e.currentTarget.dataset.id;
+                console.log(id);
+                if (!id) return;
+                wx.navigateTo({
+                    url: '/pages/potal?bid=' + id
+                });
+            },
+            goHistory() {
+                wx.navigateTo({
+                    url: '/pages/history'
+                });
+            },
+            toggleDiaplog() {
+                this.dialog.hidden = !this.dialog.hidden;
+            },
+            goIntegralDetail(e) {
+                let id = e.currentTarget.dataset.id;
+                console.log(id);
+                if (!id) return;
+
+                wx.navigateTo({
+                    url: '/pages/integralDetail?id=' + id
+                });
+            },
+            //新用户领积分
+            getRewardIntegral() {
+                wepy.request({
+                    url: '/wx/luck/rewardIntegral',
+                    data: {}
+                }).then((res) => {
+                    this.showToast('领取成功~');
+                });
+            }
+        };
+
+        onLoad() {
+            if (this.token) {
+                this.getList();
+            } else {
+                this.$parent.pageCallback = () => {
+                    this.getList();
+                };
+            }
+        };
+
+        getList(callback) {
+            wepy.request({
+                url: '/wx/luck/publicitylist',
+                data: {}
+            }).then((res) => {
+                if (res.data.code == 0) {
+                    this.list = res.data.data;
+                    this.$apply();
+                    if (callback) callback();
+                }
+            });
+        }
+
+        onPullDownRefresh() {
+            this.getList(function() {
+                wx.stopPullDownRefresh();
+            });
+        }
+
+        onShareAppMessage(res) {
+            setTimeout(() => {
+                this.statistics();
+            }, 1000);
+
+            return {
+                title: '海量免费课程',
+                path: 'pages/home'
+            };
+        }
+    }
+</script>
+
+<style lang="less">
+    @import "../css/home";
+</style>

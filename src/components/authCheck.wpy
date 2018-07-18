@@ -1,0 +1,70 @@
+<template>
+    <view class="auth-mask" wx:if="{{!auth}}">
+        <button class="auth-btn" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo"></button>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import { connect } from 'wepy-redux';
+    import { SET_AUTH, SET_USERINFO } from '../store/types';
+
+    @connect({
+        auth(state) {
+            return state.globalData.auth;
+        }
+    }, {
+        authToggle: SET_AUTH,
+        setUserInfo: SET_USERINFO
+    })
+    export default class authMask extends wepy.component {
+        components = {};
+
+        data = {
+            canIUse: wx.canIUse('button.open-type.getUserInfo')
+        };
+
+        onLoad() {
+            //不兼容
+            if (!this.canIUse) {
+                wepy.getUserInfo().then((info) => {
+                    console.warn('--getUserInfo--',info);
+                    this.$root.$parent.sendInfo(info);
+                });
+            }
+        }
+
+        methods = {
+            bindGetUserInfo(e) {
+                if (e.detail.userInfo) {
+                    this.methods.authToggle(true);
+                    //调用app.js页面的sendInfo
+                    this.$root.$parent.sendInfo(e.detail.userInfo);
+                }
+            }
+        };
+    }
+</script>
+
+<style lang="less">
+    .auth-mask {
+        z-index: 100000;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0);
+
+        .auth-btn {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            border-radius: 0;
+            padding: 0;
+            background-color: transparent;
+        }
+    }
+</style>

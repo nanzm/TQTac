@@ -1,0 +1,128 @@
+
+.user {
+    .header-panel {
+        position: relative;
+        height: 435rpx;
+        padding: 0 30rpx 0;
+        overflow: hidden;
+
+        .bg {
+            position: absolute;
+            left: -50rpx;
+            right: -50rpx;
+            height: 262rpx;
+            background-color: #000;
+            border-bottom-left-radius: 50%;
+            border-bottom-right-radius: 50%
+        }
+
+        .user {
+            position: relative;
+            z-index: 1;
+            height: 290rpx;
+            background-color: #fff;
+            margin-top: 105rpx;
+            border-radius: 10rpx;
+
+            .user-img-box {
+                position: absolute;
+                left: 50%;
+                top: -75rpx;
+                margin-left: -75rpx;
+                width: 150rpx;
+                height: 150rpx;
+                border-radius: 50%;
+                overflow: hidden;
+            }
+
+            .user-name-box {
+                text-align: center;
+                padding-top: 95rpx;
+                margin-bottom: 50rpx;
+                font-size: 32rpx;
+            }
+
+            .user-img {
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+            }
+
+            .user-data {
+                display: flex;
+                justify-content: space-around;
+            }
+            .user-data-item {
+                padding: 0 20rpx;
+            }
+            .item-num {
+                font-size: 40rpx;
+                margin-bottom: 20rpx;
+                text-align: center;
+            }
+
+            .item-name {
+                font-size: 24rpx;
+                color: #999;
+                text-align: center;
+            }
+        }
+    }
+
+    .link-panel {
+        background-color: #fff;
+
+        .integral {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .count {
+                font-size: 28rpx;
+                color: #ccc;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .link-panel-item {
+            display: flex;
+            align-items: center;
+            min-height: 90rpx;
+            line-height: 1.4;
+            padding: 20rpx 30rpx 20rpx 30rpx;
+            border-bottom: 1rpx solid #ececec;
+            font-size: 32rpx;
+            color: #333;
+
+            image {
+                width: 38rpx;
+                height: 38rpx;
+                margin-right: 30rpx;
+            }
+
+            .panel-title {
+                flex: 1;
+            }
+
+        }
+    }
+}
+
+.feedback-box {
+    width: 100%;
+    position: fixed;
+    bottom: 40rpx;
+
+    display: flex;
+    justify-content: center;
+
+    .txt-btn {
+        width: 200rpx;
+        font-size: 26rpx;
+        color: #666;
+        padding: 20rpx 0;
+    }
+}
+
+

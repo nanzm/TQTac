@@ -1,0 +1,9 @@
+node_modules
+.DS_Store
+blog.html
+test
+/build/*
+!/build/packages/
+package-lock.json
+.idea
+.wepycache

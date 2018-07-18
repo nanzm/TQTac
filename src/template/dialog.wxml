@@ -1,0 +1,101 @@
+<!--首页-->
+<template name="dialog-home">
+    <view class="dialog {{dialog.hidden?'':'show'}}">
+        <view class="dialog-wrapper">
+            <view class="dialog-mask" bindtap="toggleDiaplog"></view>
+            <view class="dialog-body-home {{dialog.hidden?'':'anim-scale'}}">
+                <text class="desc" selectable space decode></text>
+                <view class="title">{{promptIntegral.name||'恭喜您'}}</view>
+                <view class="desc">{{promptIntegral.desc||'获得6分新人专属积分'}}</view>
+                <view class="dialog-btn-group">
+                    <view class="btn-bto btn-dialog-main" hover-class="btn-dialog-main-hover" bindtap="getRewardIntegral">立即领取</view>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<!--确认兑换-->
+<template name="dialog-comfirm">
+    <view class="dialog {{!dialog.hidden && dialog.name == 'dialog-comfirm' ?'show':''}}">
+        <view class="dialog-wrapper">
+            <view class="dialog-mask" bindtap="toggleDiaplog"></view>
+            <view class="dialog-body {{dialog.hidden?'':'anim-scale'}}">
+                <view class="dialog-close">
+                    <text class="icon icon-close" bindtap="toggleDiaplog"></text>
+                </view>
+                <view class="dialog-title">确定兑换该奖品吗？</view>
+                <view class="dialog-content">兑换后奖扣除{{detail.goodInfo.integral}}积分</view>
+                <view class="dialog-btn-group">
+                    <view class="btn-bto btn-blank" hover-class="btn-blank-hover" bindtap="toggleDiaplog">暂不兑换</view>
+                    <view class="btn-bto btn-main" hover-class="btn-main-hover" bindtap="exchange">确认兑换</view>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<!--积分不足-->
+<template name="dialog-cant">
+    <view class="dialog {{ !dialog.hidden && dialog.name == 'dialog-cant'?'show':''}}">
+        <view class="dialog-wrapper">
+            <view class="dialog-mask" bindtap="toggleDiaplog"></view>
+            <view class="dialog-body {{dialog.hidden?'':'anim-scale'}}">
+                <view class="dialog-close">
+                    <text class="icon icon-close" bindtap="toggleDiaplog"></text>
+                </view>
+                <view class="dialog-title">积分不足</view>
+                <view class="dialog-content">可通过抽奖、邀请好友赚取积分哦~</view>
+                <view class="dialog-btn-group">
+                    <view class="btn-bto btn-blank" hover-class="btn-blank-hover" bindtap="goHome">更多抽奖</view>
+                    <button class="btn-bto btn-main" hover-class="btn-main-hover" open-type="share">分享给朋友</button>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<!--已发完-->
+<template name="dialog-nomore">
+    <view class="dialog {{ !dialog.hidden && dialog.name == 'dialog-nomore'?'show':''}}">
+        <view class="dialog-wrapper">
+            <view class="dialog-mask" bindtap="toggleDiaplog"></view>
+            <view class="dialog-body {{dialog.hidden?'':'anim-scale'}}">
+                <view class="dialog-close">
+                    <text class="icon icon-close" bindtap="toggleDiaplog"></text>
+                </view>
+                <view class="dialog-title">奖品已发完</view>
+                <view class="dialog-content">你可尝试兑换其它奖品！</view>
+                <view class="dialog-btn-group">
+                    <view class="btn-bto btn-blank" hover-class="btn-blank-hover" bindtap="goHome">更多抽奖</view>
+                    <button class="btn-bto btn-main" hover-class="btn-main-hover" bindtap="goIntegralHome">更多兑换</button>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<!--未中奖-->
+<template name="dialog-notwinner">
+    <view class="dialog {{dialog.hidden?'':'show'}}">
+        <view class="dialog-wrapper">
+            <view class="dialog-mask" bindtap="toggleDiaplog"></view>
+            <view class="dialog-body {{dialog.hidden?'':'anim-scale'}}">
+                <view class="dialog-close">
+                    <text class="icon icon-close" bindtap="toggleDiaplog"></text>
+                </view>
+                <view class="dialog-title">抽奖结果</view>
+                <image class="result-icon sad-icon" mode="aspectFill" src="/images/iconpro/potal-nowinning.png"></image>
+                <view class="result-msg">好遗憾，差一点就中奖了！</view>
+                <!--<view class="dialog-title"></view>-->
+                <!--<view class="dialog-content">你可尝试兑换其它奖品！</view>-->
+
+                <view class="dialog-btn-group">
+                    <view class="btn-bto btn-blank" hover-class="btn-blank-hover" bindtap="goHome">更多抽奖</view>
+                    <button class="btn-bto btn-main" hover-class="btn-main-hover" bindtap="integralHome">免费兑换</button>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+

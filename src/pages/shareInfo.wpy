@@ -1,0 +1,201 @@
+<template>
+    <view class="shareInfo">
+        <canvas canvas-id="shareCanvas" class="canvasShare"></canvas>
+
+        <!--<view class="img-box">-->
+            <!--<view wx:if="{{!priviewImg}}" class="tip">图片生成中...</view>-->
+            <!--<image wx:else src="{{priviewImg}}" mode="widthFix" class="img-priview"></image>-->
+        <!--</view>-->
+
+        <!--<button class="saveImg {{priviewImg?'slideUp':''}}  {{isIpx?'fix-iphonex-button':''}}" @tap="saveImg" hover-class="saveImg-hover">保存图片</button>-->
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import mixins from '../mixins/appMixin';
+    import { connect } from 'wepy-redux';
+    import Paint from '../lib/paintQrcode';
+
+    @connect({
+        token(state) {
+            return state.globalData.token;
+        },
+        isIpx(state) {
+            return state.globalData.isIpx;
+        }
+    })
+    export default class Demo extends wepy.page {
+        config = {
+            'navigationBarTitleText': '生成分享图',
+            'navigationBarBackgroundColor': '#000000',
+            'navigationBarTextStyle': 'white',
+            'backgroundColor': '#000000'
+            // 'disableScroll': true
+        };
+
+        mixins = [mixins];
+
+        components = {};
+
+        data = {
+            id: '',
+            detail: {},
+            qrcode: '',
+
+            mainimgPath: '',
+            qrcodePath: '',
+            headimgPath: '',
+
+            priviewImg: ''
+        };
+
+        methods = {
+            saveImg() {
+                wx.saveImageToPhotosAlbum({
+                    filePath: this.priviewImg,
+                    success: (res) => {
+                        wx.showToast({
+                            title: '保存成功！',
+                            icon: 'success',
+                            duration: 1300
+                        });
+                    },
+                    fail: (err) => {
+                        wx.showModal({
+                            title: '保存失败',
+                            content: '请程序允许访问文件',
+                            showCancel: false
+                        });
+                    }
+                });
+            }
+        };
+
+        onLoad(query) {
+            this.id = query.id;
+            console.log(query);
+
+            if (this.token) {
+                this.getDetail();
+            } else {
+                this.$parent.pageCallback = () => {
+                    this.getDetail();
+                };
+            }
+        }
+
+        getDetail() {
+            let promise1 = wepy.request({ url: '/wx/luck/activityinfo', data: { id: this.id } });
+            // let promise2 = wepy.request({ url: '/wx/luck/qrcode', data: { id: this.id, site: 2 } });
+
+            Promise.all([promise1]).then((res) => {
+                if (res[0].data.code == 0) {
+                    this.detail = res[0].data.data;
+                    // this.qrcode = res[1].data.data;
+                    this.$apply();
+
+                    this.downloadImg();
+                } else {
+                    wx.showModal({
+                        title: '提示',
+                        content: '请求信息失败！',
+                        showCancel: false
+                    });
+                }
+            }).catch();
+        }
+
+        downloadImg() {
+            let info = this.detail.activityinfo;
+
+            let mainimgPath = info.img;
+            let qrcodePath = info.qrcode;
+            let headimgPath = info.head_url;
+
+            // let headimgPath = "/images/head-default.png";
+            // let headimgPath = 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTITJ4zyNwvJxPibZRFkScvHTN83b1ZepOCt2NF7cnL1vd7icZto6OrFKgPlnBwErXRv7kBfsdKFNISQ/132';
+            // let mainimgPath = 'https://apit.youfentong.com/uploads/2018-06-14/20180614104500195.jpg';
+            // let qrcodePath = 'https://apit.youfentong.com/uploads/2018-06-13/20180613173716214.png';
+
+            let prom1 = wepy.downloadFile({ url: mainimgPath });
+            let prom2 = wepy.downloadFile({ url: qrcodePath });
+            let prom3 = wepy.downloadFile({ url: headimgPath });
+
+            Promise.all([prom1, prom2, prom3]).then((res) => {
+                console.warn('Promise.all([prom1, prom2, prom3])', res);
+
+                if (res[0].statusCode == 200 && res[1].statusCode == 200 && res[2].statusCode == 200) {
+
+                    this.mainimgPath = res[0].tempFilePath;
+                    this.qrcodePath = res[1].tempFilePath;
+                    this.headimgPath = res[2].tempFilePath;
+                    this.$apply();
+
+                    //生成页面
+                    this.paintImage();
+
+                } else {
+                    wx.showModal({
+                        title: '抱歉',
+                        content: '无法获取图片！',
+                        showCancel: false
+                    });
+                }
+            }).catch((err) => {
+                console.error(err);
+                wx.showModal({
+                    title: '抱歉',
+                    content: '请求图片失败！',
+                    showCancel: false
+                });
+            });
+        }
+
+        paintImage() {
+            console.log('---');
+            let that = this;
+            let info = this.detail.activityinfo;
+
+            let headimgPath = this.headimgPath;
+            let mainimgPath = this.mainimgPath;
+            let qrcodePath = this.qrcodePath;
+
+            let sponsor = info.sponsor || '发起人';
+            let title = info.name || '奖品';
+            let nickname = info.nick_name || '匿名用户';
+
+            let rules;
+            if (info.type == 1) {
+                rules = '参与满' + info.term + '人 自动开奖';
+            } else if (info.type == 2) {
+                rules = info.term + ' 自动开奖';
+            } else if (info.type == 3) {
+                rules = '发起人手动开奖';
+            }
+
+            Paint({
+                headimgPath: this.headimgPath,
+                mainimgPath: this.mainimgPath,
+                qrcodePath: this.qrcodePath,
+                sponsor: sponsor,
+                title: title,
+                nickname: nickname,
+                rules: rules
+            }, function() {
+                wx.canvasToTempFilePath({
+                    canvasId: 'shareCanvas',
+                    success: function(res) {
+                        console.log(res.tempFilePath);
+                        that.priviewImg = res.tempFilePath;
+                        that.$apply();
+                    }
+                });
+            });
+        }
+    }
+</script>
+
+<style lang="less">
+    @import "../css/shareInfo";
+</style>
